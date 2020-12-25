@@ -4,7 +4,8 @@
 	"description": "Automate user interaction performance testing.",
 	"main": "index.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"process": "cd src && node index.js"
 	},
 	"author": "",
 	"license": "ISC",
