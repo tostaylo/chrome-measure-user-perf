@@ -2,23 +2,24 @@ const puppeteer = require('puppeteer');
 
 (async () => {
 	try {
-		const data_click_vals = await getElements();
+		const data_click_vals = await getInteractiveElements();
+
 		for (const valStr of data_click_vals) {
 			const { page, browser } = await launchBrowser();
+			const dataAttr = `[data-click="${valStr}"]`;
+			const selector = await page.waitForSelector(dataAttr);
 
-			await page.tracing.start({ path: `../traces/trace.${valStr}.json`, screenshots: false });
+			if (selector) {
+				await page.tracing.start({ path: `../traces/trace.${valStr}.json`, screenshots: false });
+				await page.click(dataAttr);
+				await page.tracing.stop();
+				console.log('Trace Successful');
+			}
 
-			await page.click(`[data-click="${valStr}"]`);
-			await page.waitForTimeout(3000);
-			console.log('hi');
-			await page.tracing.stop();
-			// await browser.close();
+			await browser.close();
+			console.log('closing browser');
 		}
 
-		// await page.waitForSelector(selector, { timeout: 2000 });
-
-		// await page.click(selector);
-		// await page.tracing.stop();
 		process.exit(0);
 	} catch (err) {
 		console.error(err);
@@ -28,14 +29,8 @@ const puppeteer = require('puppeteer');
 
 async function launchBrowser() {
 	const browser = await puppeteer.launch({
-		headless: false,
-		args: [
-			'--incognito',
-			'--no-sandbox', // meh but better resource consumption
-			'--disable-setuid-sandbox',
-			'--disable-dev-shm-usage', // ???
-			'--no-zygote', // wtf does that mean ?
-		],
+		headless: true,
+		args: ['--incognito', '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--no-zygote'],
 	});
 
 	const page = await browser.newPage();
@@ -48,11 +43,12 @@ async function launchBrowser() {
 	return { browser, page };
 }
 
-async function getElements(): Promise<string[]> {
+async function getInteractiveElements(): Promise<string[]> {
 	const { page, browser } = await launchBrowser();
 
 	const data_click_vals = await page.evaluate(() => {
 		let elements = [...document.querySelectorAll('[data-click]')];
+
 		// Return value must be JSON serializable
 		return elements.map((item) => (item as any).dataset.click);
 	});

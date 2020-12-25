@@ -2,19 +2,20 @@
 const puppeteer = require('puppeteer');
 (async () => {
     try {
-        const data_click_vals = await getElements();
+        const data_click_vals = await getInteractiveElements();
         for (const valStr of data_click_vals) {
             const { page, browser } = await launchBrowser();
-            await page.tracing.start({ path: `../traces/trace.${valStr}.json`, screenshots: false });
-            await page.click(`[data-click="${valStr}"]`);
-            await page.waitForTimeout(3000);
-            console.log('hi');
-            await page.tracing.stop();
-            // await browser.close();
+            const dataAttr = `[data-click="${valStr}"]`;
+            const selector = await page.waitForSelector(dataAttr);
+            if (selector) {
+                await page.tracing.start({ path: `../traces/trace.${valStr}.json`, screenshots: false });
+                await page.click(dataAttr);
+                await page.tracing.stop();
+                console.log('Trace Successful');
+            }
+            await browser.close();
+            console.log('closing browser');
         }
-        // await page.waitForSelector(selector, { timeout: 2000 });
-        // await page.click(selector);
-        // await page.tracing.stop();
         process.exit(0);
     }
     catch (err) {
@@ -24,14 +25,8 @@ const puppeteer = require('puppeteer');
 })();
 async function launchBrowser() {
     const browser = await puppeteer.launch({
-        headless: false,
-        args: [
-            '--incognito',
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--no-zygote',
-        ],
+        headless: true,
+        args: ['--incognito', '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--no-zygote'],
     });
     const page = await browser.newPage();
     const navigationPromise = page.waitForNavigation();
@@ -41,7 +36,7 @@ async function launchBrowser() {
     await navigationPromise;
     return { browser, page };
 }
-async function getElements() {
+async function getInteractiveElements() {
     const { page, browser } = await launchBrowser();
     const data_click_vals = await page.evaluate(() => {
         let elements = [...document.querySelectorAll('[data-click]')];

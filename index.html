@@ -10,14 +10,42 @@
 		/>
 	</head>
 	<body>
-		<div id="wtf" data-click="1st">adf</div>
-		<div data-click="2nd">adc</div>
-		<div data-click="3rd">adfas</div>
+		<div id="main" style="display: flex; flex-direction: row">
+			<div style="background-color: red; width: 33%; height: 200vh" data-click="1st">adf</div>
+			<div style="background-color: blue; width: 33%; height: 200vh" data-click="2nd">adc</div>
+			<div style="background-color: green; width: 33%; height: 200vh" data-click="3rd">adfas</div>
+		</div>
 	</body>
 	<script>
 		(function () {
 			const data = document.querySelectorAll('[data-click]');
-			data.forEach((div) => div.addEventListener('click', (ev) => console.log(ev.target)));
+
+			const main = document.getElementById('main');
+			const div1 = document.querySelector("[data-click='1st']");
+			const div2 = document.querySelector("[data-click='2nd']");
+			const div3 = document.querySelector("[data-click='3rd']");
+
+			for (let i = 0; i < 10000; i++) {
+				const div = document.createElement('div');
+				div.innerText =
+					'witness the fitnesaldfjladjfa;adjflkajdfjas;kdfja;lsjflsaj;fjasfjsla;kjlasjl;sadjajsdlkas;jasljflasj';
+				div1.appendChild(div);
+				div2.appendChild(div);
+				div3.appendChild(div);
+			}
+			data.forEach((div) =>
+				div.addEventListener('click', (ev) => {
+					const arr = new Array();
+					for (let i = 0; i < 10000000; i++) {
+						arr.push('aslfkdjas;lfjls;akjf;ls');
+					}
+
+					main.style.flexDirection = 'column';
+					div1.style.backgroundColor = 'pink';
+					div2.style.backgroundColor = 'yellow';
+					div3.style.backgroundColor = 'orange';
+				})
+			);
 		})();
 	</script>
 </html>
