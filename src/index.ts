@@ -70,28 +70,14 @@ function processFiles() {
 
 		try {
 			const data = fs.readFileSync(path, 'utf8');
-			const json = JSON.parse(data);
+			const json: { traceEvents: TraceEntry[] } = JSON.parse(data);
+			if (!json?.traceEvents) {
+				throw new Error('Unable to parse JSON data');
+			}
+			const { finalCompositeDur, finalCompositeStartTime, clickDur, clickStartTime } = processJSON(json.traceEvents);
 
-			let finalCompositeStartTime = 0;
-			let finalCompositeDur = 0;
-			let clickStartTime = 0;
-			let clickDur = 0;
-
-			json?.traceEvents?.forEach((entry: TraceEntry) => {
-				if (entry.args?.data?.type === RenderEvent.Click) {
-					clickStartTime = entry.ts;
-					clickDur = entry.dur;
-				}
-
-				if (isCompositeEvent(entry.name)) {
-					if (entry.ts > finalCompositeStartTime) {
-						finalCompositeStartTime = entry.ts;
-						finalCompositeDur = entry.dur;
-					}
-				}
-			});
 			const totalDur = finalCompositeStartTime + finalCompositeDur - clickStartTime;
-			console.log(totalDur);
+			console.log(totalDur, clickDur);
 		} catch (err) {
 			console.error(err);
 		}
@@ -119,9 +105,53 @@ enum RenderEvent {
 	CompositeLayers = 'CompositeLayers',
 }
 
+interface CoreTimings {
+	ts: number;
+	dur: number;
+}
+
 function isCompositeEvent(event: string): boolean {
 	if (event === RenderEvent.CompositeLayers) {
 		return true;
 	}
 	return false;
+}
+
+function isClickEvent(event: string): boolean {
+	if (event === RenderEvent.Click) {
+		return true;
+	}
+	return false;
+}
+
+function getCoreTimings(entry: TraceEntry, predicate: () => boolean): CoreTimings | undefined {
+	if (predicate()) {
+		return { ts: entry.ts, dur: entry.dur };
+	}
+}
+
+function processJSON(traceEvents: TraceEntry[]) {
+	let finalCompositeStartTime = 0;
+	let finalCompositeDur = 0;
+	let clickStartTime = 0;
+	let clickDur = 0;
+
+	traceEvents.forEach((entry: TraceEntry) => {
+		const clickTimings = getCoreTimings(entry, () => isClickEvent(entry.args?.data?.type));
+		if (clickTimings) {
+			const { ts, dur } = clickTimings;
+			clickStartTime = ts;
+			clickDur = dur;
+		}
+
+		const compositeTimings = getCoreTimings(entry, () => isCompositeEvent(entry.name));
+		if (compositeTimings) {
+			const { ts, dur } = compositeTimings;
+			if (ts > finalCompositeStartTime) {
+				finalCompositeStartTime = ts;
+				finalCompositeDur = dur;
+			}
+		}
+	});
+	return { finalCompositeDur, finalCompositeStartTime, clickStartTime, clickDur };
 }
