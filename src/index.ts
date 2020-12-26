@@ -12,11 +12,18 @@ enum RenderEvent {
 	CompositeLayers = 'CompositeLayers',
 }
 
-interface Config {
+export interface Config {
 	host: string;
-	thresholds: Record<string, number>;
+	thresholds?: Record<string, number>;
 }
+
 class Run {
+	private config: Config;
+
+	constructor(config: Config) {
+		this.config = config;
+	}
+
 	async run() {
 		try {
 			const data_click_vals = await this.getInteractiveElements();
@@ -57,7 +64,7 @@ class Run {
 
 		const page = await browser.newPage();
 		const navigationPromise = page.waitForNavigation();
-		await page.goto('http://localhost:8000');
+		await page.goto(this.config.host);
 		await page.setViewport({ width: 1440, height: 714 });
 		await (page as any).waitForTimeout(1000);
 		await navigationPromise;
@@ -84,7 +91,7 @@ class Run {
 		fs.readdirSync(TRACE_DIR).forEach((file: string) => {
 			const path = `${TRACE_DIR}${file}`;
 			const fileName = file.split('.')[1];
-			console.log(fileName);
+			console.log(path);
 
 			try {
 				const data = fs.readFileSync(path, 'utf8');
@@ -97,12 +104,27 @@ class Run {
 				);
 
 				const totalDur = finalCompositeStartTime + finalCompositeDur - clickStartTime;
+				this.evaluateThresholds(totalDur, fileName);
+
 				console.log({ totalDur, clickDur });
 				this.removeFiles(file);
 			} catch (err) {
 				console.error(err);
 			}
 		});
+	}
+
+	evaluateThresholds(totalDur: number, fileName: string) {
+		const threshold = this.config.thresholds && this.config.thresholds[fileName];
+		if (threshold) {
+			if (totalDur < threshold) {
+				console.log(fileName, 'passed');
+				console.log(`Total Duration ${totalDur} was and threshold is ${threshold} `);
+			} else {
+				console.log(fileName, 'failed');
+				console.log(`Total Duration ${totalDur} was and threshold is ${threshold} `);
+			}
+		}
 	}
 
 	isCompositeEvent(event: string): boolean {
