@@ -1,12 +1,12 @@
 'use strict';
-const puppeteer = require('puppeteer');
-const fs = require('fs');
+import puppeteer from 'puppeteer';
+import * as fs from 'fs';
 const TRACE_DIR = '../traces/';
 (async () => {
     try {
         const data_click_vals = await getInteractiveElements();
         await generateTraces(data_click_vals);
-        await processFiles();
+        processFiles();
         process.exit(0);
     }
     catch (err) {

@@ -1,13 +1,13 @@
 'use strict';
-const puppeteer = require('puppeteer');
-const fs = require('fs');
+import puppeteer from 'puppeteer';
+import * as fs from 'fs';
 const TRACE_DIR = '../traces/';
 
 (async () => {
 	try {
 		const data_click_vals = await getInteractiveElements();
 		await generateTraces(data_click_vals);
-		await processFiles();
+		processFiles();
 
 		process.exit(0);
 	} catch (err) {
@@ -45,7 +45,7 @@ async function launchBrowser() {
 	const navigationPromise = page.waitForNavigation();
 	await page.goto('http://localhost:8000');
 	await page.setViewport({ width: 1440, height: 714 });
-	await page.waitForTimeout(1000);
+	await (page as any).waitForTimeout(1000);
 	await navigationPromise;
 
 	return { browser, page };
