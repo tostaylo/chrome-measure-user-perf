@@ -1,28 +1,13 @@
 'use strict';
 const puppeteer = require('puppeteer');
 const fs = require('fs');
+const TRACE_DIR = '../traces/';
 
 (async () => {
 	try {
 		const data_click_vals = await getInteractiveElements();
-
-		for (const valStr of data_click_vals) {
-			const { page, browser } = await launchBrowser();
-			const dataAttr = `[data-click="${valStr}"]`;
-			const selector = await page.waitForSelector(dataAttr);
-
-			if (selector) {
-				await page.tracing.start({ path: `../traces/trace.${valStr}.json`, screenshots: false });
-				await page.click(dataAttr);
-				await page.tracing.stop();
-				console.log('Trace Successful');
-			}
-
-			await browser.close();
-			console.log('closing browser');
-		}
-
-		processFiles();
+		await generateTraces(data_click_vals);
+		await processFiles();
 
 		process.exit(0);
 	} catch (err) {
@@ -30,6 +15,25 @@ const fs = require('fs');
 		process.exit(1);
 	}
 })();
+
+async function generateTraces(data_click_vals: string[]) {
+	for (const valStr of data_click_vals) {
+		const { page, browser } = await launchBrowser();
+		const dataAttr = `[data-click="${valStr}"]`;
+		const selector = await page.waitForSelector(dataAttr);
+
+		if (selector) {
+			console.log(dataAttr);
+			await page.tracing.start({ path: `${TRACE_DIR}trace.${valStr}.json`, screenshots: false });
+			await page.click(dataAttr);
+			await page.tracing.stop();
+			console.log('Trace Successful');
+		}
+
+		await browser.close();
+		console.log('closing browser');
+	}
+}
 
 async function launchBrowser() {
 	const browser = await puppeteer.launch({
@@ -63,8 +67,8 @@ async function getInteractiveElements(): Promise<string[]> {
 
 function processFiles() {
 	console.log('Reading Traces Directory');
-	fs.readdirSync('../traces/').forEach((file: string) => {
-		const path = `../traces/${file}`;
+	fs.readdirSync(TRACE_DIR).forEach((file: string) => {
+		const path = `${TRACE_DIR}${file}`;
 		const fileName = file.split('.')[1];
 		console.log(fileName);
 
@@ -77,16 +81,11 @@ function processFiles() {
 			const { finalCompositeDur, finalCompositeStartTime, clickDur, clickStartTime } = processJSON(json.traceEvents);
 
 			const totalDur = finalCompositeStartTime + finalCompositeDur - clickStartTime;
-			console.log(totalDur, clickDur);
+			console.log({ totalDur, clickDur });
+			removeFiles(file);
 		} catch (err) {
 			console.error(err);
 		}
-
-		// try {
-		// 	fs.unlinkSync(`../traces/${file}`);
-		// } catch (err) {
-		// 	console.error(err);
-		// }
 	});
 }
 
@@ -155,3 +154,13 @@ function processJSON(traceEvents: TraceEntry[]) {
 	});
 	return { finalCompositeDur, finalCompositeStartTime, clickStartTime, clickDur };
 }
+
+function removeFiles(file: string) {
+	try {
+		fs.unlinkSync(`${TRACE_DIR}${file}`);
+	} catch (err) {
+		console.error(err);
+	}
+}
+
+// Will need to write tests
