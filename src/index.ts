@@ -11,7 +11,12 @@ enum RenderEvent {
 	Paint = 'Paint',
 	CompositeLayers = 'CompositeLayers',
 }
-
+interface Result {
+	name: string;
+	status: string;
+	threshold: number;
+	actual: number;
+}
 export interface Config {
 	host: string;
 	thresholds?: Record<string, number>;
@@ -19,9 +24,11 @@ export interface Config {
 
 class Run {
 	private config: Config;
+	private results: Result[];
 
 	constructor(config: Config) {
 		this.config = config;
+		this.results = [];
 	}
 
 	async run() {
@@ -29,12 +36,19 @@ class Run {
 			const data_click_vals = await this.getInteractiveElements();
 			await this.generateTraces(data_click_vals);
 			this.processFiles();
+			this.printResults();
 
 			process.exit(0);
 		} catch (err) {
 			console.error(err);
 			process.exit(1);
 		}
+	}
+
+	printResults() {
+		this.results.map((result) => {
+			console.log({ name: result.name, status: result.status });
+		});
 	}
 
 	async generateTraces(data_click_vals: string[]) {
@@ -44,15 +58,13 @@ class Run {
 			const selector = await page.waitForSelector(dataAttr);
 
 			if (selector) {
-				console.log(dataAttr);
 				await page.tracing.start({ path: `${TRACE_DIR}trace.${valStr}.json`, screenshots: false });
 				await page.click(dataAttr);
 				await page.tracing.stop();
-				console.log('Trace Successful');
+				console.log(dataAttr, 'Trace Successful');
 			}
 
 			await browser.close();
-			console.log('closing browser');
 		}
 	}
 
@@ -91,7 +103,6 @@ class Run {
 		fs.readdirSync(TRACE_DIR).forEach((file: string) => {
 			const path = `${TRACE_DIR}${file}`;
 			const fileName = file.split('.')[1];
-			console.log(path);
 
 			try {
 				const data = fs.readFileSync(path, 'utf8');
@@ -106,7 +117,7 @@ class Run {
 				const totalDur = finalCompositeStartTime + finalCompositeDur - clickStartTime;
 				this.evaluateThresholds(totalDur, fileName);
 
-				console.log({ totalDur, clickDur });
+				console.log({ path, totalDur, clickDur });
 				this.removeFiles(file);
 			} catch (err) {
 				console.error(err);
@@ -117,13 +128,13 @@ class Run {
 	evaluateThresholds(totalDur: number, fileName: string) {
 		const threshold = this.config.thresholds && this.config.thresholds[fileName];
 		if (threshold) {
-			if (totalDur < threshold) {
-				console.log(fileName, 'passed');
-				console.log(`Total Duration ${totalDur} was and threshold is ${threshold} `);
-			} else {
-				console.log(fileName, 'failed');
-				console.log(`Total Duration ${totalDur} was and threshold is ${threshold} `);
-			}
+			let result: Result = {
+				threshold,
+				actual: totalDur,
+				name: fileName,
+				status: totalDur < threshold ? 'passed' : 'failed',
+			};
+			this.results.push(result);
 		}
 	}
 
