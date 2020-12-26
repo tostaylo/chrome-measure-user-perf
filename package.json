@@ -6,7 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"process": "cd src && node index.js",
+		"process": "npm run tsc && cd src && node test.js",
 		"tsc": "tsc",
 		"prepublish": "npm run tsc"
 	},
