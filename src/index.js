@@ -2,7 +2,7 @@
 import puppeteer from 'puppeteer';
 import * as fs from 'fs';
 const TRACE_DIR = '../traces/';
-(async () => {
+async function run() {
     try {
         const data_click_vals = await getInteractiveElements();
         await generateTraces(data_click_vals);
@@ -13,7 +13,7 @@ const TRACE_DIR = '../traces/';
         console.error(err);
         process.exit(1);
     }
-})();
+}
 async function generateTraces(data_click_vals) {
     for (const valStr of data_click_vals) {
         const { page, browser } = await launchBrowser();
@@ -131,3 +131,4 @@ function removeFiles(file) {
         console.error(err);
     }
 }
+export default run;
