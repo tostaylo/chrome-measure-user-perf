@@ -162,23 +162,28 @@ class Run {
 				let totalDur = finalCompositeStartTime + finalCompositeDur - clickStartTime;
 				clickDur = clickDur / 1000;
 				totalDur = totalDur / 1000;
-				this.evaluateThresholds(totalDur, fileName);
+
+				const result = this.evaluateThresholds(totalDur, fileName);
+				if (result) {
+					this.results.push(result);
+				}
 			} catch (err) {
 				console.error(err);
 			}
 		});
 	}
 
-	evaluateThresholds(totalDur: number, fileName: string) {
+	evaluateThresholds(totalDur: number, fileName: string): Result | undefined {
 		const threshold = this.config.thresholds && this.config.thresholds[fileName];
 		if (threshold) {
 			let result: Result = {
 				threshold,
 				actual: totalDur,
 				name: fileName,
-				status: totalDur < threshold ? 'passed' : 'failed',
+				status: totalDur < threshold ? 'Passed' : 'Failed',
 			};
-			this.results.push(result);
+
+			return result;
 		} else {
 			throw new Error(
 				`All elements with the [data-click] attribute must have a threshold set. No threshold was set for the element ${fileName}`
