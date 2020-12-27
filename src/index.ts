@@ -4,6 +4,9 @@ import * as fs from 'fs';
 import { TraceEntry, CoreTimings } from './types/index';
 const TRACE_DIR = '../traces/';
 
+// Configurable Options
+// Throttled
+
 enum RenderEvent {
 	Click = 'click',
 	Layout = 'Layout',
@@ -19,7 +22,7 @@ interface Result {
 }
 export interface Config {
 	host: string;
-	thresholds?: Record<string, number>;
+	thresholds: Record<string, number>;
 }
 
 class Run {
@@ -33,14 +36,13 @@ class Run {
 
 	async run() {
 		try {
+			fs.rmdirSync(TRACE_DIR, { recursive: true });
 			fs.mkdirSync(TRACE_DIR);
 
 			const data_click_vals = await this.getInteractiveElements();
 			await this.generateTraces(data_click_vals);
 			this.processFiles();
 			this.printResults();
-
-			fs.rmdirSync(TRACE_DIR);
 
 			process.exit(0);
 		} catch (err) {
@@ -51,7 +53,12 @@ class Run {
 
 	printResults() {
 		this.results.map((result) => {
-			console.log({ name: result.name, status: result.status });
+			console.log({
+				TestName: result.name,
+				Status: result.status,
+				Expected: `< ${result.threshold}`,
+				Actual: result.actual,
+			});
 		});
 	}
 
@@ -65,7 +72,6 @@ class Run {
 				await page.tracing.start({ path: `${TRACE_DIR}trace.${valStr}.json`, screenshots: false });
 				await page.click(dataAttr);
 				await page.tracing.stop();
-				console.log(dataAttr, 'Trace Successful');
 			}
 
 			await browser.close();
@@ -103,7 +109,6 @@ class Run {
 	}
 
 	processFiles() {
-		console.log('Reading Traces Directory');
 		fs.readdirSync(TRACE_DIR).forEach((file: string) => {
 			const path = `${TRACE_DIR}${file}`;
 			const fileName = file.split('.')[1];
@@ -114,15 +119,14 @@ class Run {
 				if (!json?.traceEvents) {
 					throw new Error('Unable to parse JSON data');
 				}
-				const { finalCompositeDur, finalCompositeStartTime, clickDur, clickStartTime } = this.processJSON(
+				let { finalCompositeDur, finalCompositeStartTime, clickDur, clickStartTime } = this.processJSON(
 					json.traceEvents
 				);
 
-				const totalDur = finalCompositeStartTime + finalCompositeDur - clickStartTime;
+				let totalDur = finalCompositeStartTime + finalCompositeDur - clickStartTime;
+				clickDur = clickDur / 1000;
+				totalDur = totalDur / 1000;
 				this.evaluateThresholds(totalDur, fileName);
-
-				console.log({ path, totalDur, clickDur });
-				this.removeFiles(file);
 			} catch (err) {
 				console.error(err);
 			}
@@ -139,6 +143,10 @@ class Run {
 				status: totalDur < threshold ? 'passed' : 'failed',
 			};
 			this.results.push(result);
+		} else {
+			throw new Error(
+				`All elements with the [data-click] attribute must have a threshold set. No threshold was set for the element ${fileName}`
+			);
 		}
 	}
 
@@ -186,14 +194,6 @@ class Run {
 			}
 		});
 		return { finalCompositeDur, finalCompositeStartTime, clickStartTime, clickDur };
-	}
-
-	removeFiles(file: string) {
-		try {
-			fs.unlinkSync(`${TRACE_DIR}${file}`);
-		} catch (err) {
-			console.error(err);
-		}
 	}
 }
 

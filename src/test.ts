@@ -2,7 +2,7 @@ import Run, { Config } from './index.js';
 
 const config: Config = {
 	host: 'http://localhost:8000',
-	thresholds: { '1st': 5000000, '2nd': 4000, '3rd': 5000000 },
+	thresholds: { '2nd': 400, '3rd': 500 },
 };
 
 (async () => {
