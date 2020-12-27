@@ -2,7 +2,6 @@
 import puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import { TraceEntry, CoreTimings } from './types/index';
-const TRACE_DIR = '../traces/';
 
 // Configurable Options
 // Throttled
@@ -23,6 +22,7 @@ interface Result {
 export interface Config {
 	host: string;
 	thresholds: Record<string, number>;
+	traceDir: string;
 }
 
 class Run {
@@ -36,16 +36,19 @@ class Run {
 
 	async run() {
 		try {
-			fs.rmdirSync(TRACE_DIR, { recursive: true });
-			fs.mkdirSync(TRACE_DIR);
+			// remove directory if it exists already.
+			fs.rmdirSync(this.config.traceDir, { recursive: true });
+			fs.mkdirSync(this.config.traceDir);
 
 			const data_click_vals = await this.getInteractiveElements();
 			await this.generateTraces(data_click_vals);
 			this.processFiles();
 			this.printResults();
 
+			fs.rmdirSync(this.config.traceDir, { recursive: true });
 			process.exit(0);
 		} catch (err) {
+			fs.rmdirSync(this.config.traceDir, { recursive: true });
 			console.error(err);
 			process.exit(1);
 		}
@@ -69,7 +72,7 @@ class Run {
 			const selector = await page.waitForSelector(dataAttr);
 
 			if (selector) {
-				await page.tracing.start({ path: `${TRACE_DIR}trace.${valStr}.json`, screenshots: false });
+				await page.tracing.start({ path: `${this.config.traceDir}trace.${valStr}.json`, screenshots: false });
 				await page.click(dataAttr);
 				await page.tracing.stop();
 			}
@@ -109,8 +112,8 @@ class Run {
 	}
 
 	processFiles() {
-		fs.readdirSync(TRACE_DIR).forEach((file: string) => {
-			const path = `${TRACE_DIR}${file}`;
+		fs.readdirSync(this.config.traceDir).forEach((file: string) => {
+			const path = `${this.config.traceDir}${file}`;
 			const fileName = file.split('.')[1];
 
 			try {
