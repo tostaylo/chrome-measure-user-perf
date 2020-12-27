@@ -3,8 +3,10 @@ import puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import { TraceEntry, CoreTimings } from './types/index';
 
-// Configurable Options
-// Throttled
+enum ThrottleSetting {
+	NO_THROTTLE,
+	THROTTLE_4X,
+}
 
 enum RenderEvent {
 	Click = 'click',
@@ -19,10 +21,13 @@ interface Result {
 	threshold: number;
 	actual: number;
 }
+
+const DEFAULT_CONFIG: Partial<Config> = { throttleSetting: ThrottleSetting.NO_THROTTLE };
 export interface Config {
 	host: string;
 	thresholds: Record<string, number>;
 	traceDir: string;
+	throttleSetting?: ThrottleSetting;
 }
 
 class Run {
@@ -30,7 +35,7 @@ class Run {
 	private results: Result[];
 
 	constructor(config: Config) {
-		this.config = config;
+		this.config = { ...DEFAULT_CONFIG, ...config };
 		this.results = [];
 	}
 
@@ -46,23 +51,35 @@ class Run {
 			this.printResults();
 
 			fs.rmdirSync(this.config.traceDir, { recursive: true });
+
 			process.exit(0);
 		} catch (err) {
 			fs.rmdirSync(this.config.traceDir, { recursive: true });
+
 			console.error(err);
+
 			process.exit(1);
 		}
 	}
 
 	printResults() {
+		console.log('TEST RESULTS');
+		console.log('**********************************');
+		console.log('**********************************');
+		console.log('**********************************');
+		console.log('**********************************');
 		this.results.map((result) => {
-			console.log({
+			console.dir({
 				TestName: result.name,
 				Status: result.status,
 				Expected: `< ${result.threshold}`,
 				Actual: result.actual,
 			});
 		});
+		console.log('**********************************');
+		console.log('**********************************');
+		console.log('**********************************');
+		console.log('**********************************');
 	}
 
 	async generateTraces(data_click_vals: string[]) {
@@ -81,7 +98,7 @@ class Run {
 		}
 	}
 
-	async launchBrowser() {
+	async launchBrowser(throttled = true) {
 		const browser = await puppeteer.launch({
 			headless: true,
 			args: ['--incognito', '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--no-zygote'],
@@ -94,11 +111,27 @@ class Run {
 		await (page as any).waitForTimeout(1000);
 		await navigationPromise;
 
+		if (throttled && this.config.throttleSetting === ThrottleSetting.THROTTLE_4X) {
+			// Connect to Chrome DevTools
+			const client = await page.target().createCDPSession();
+
+			// Set Network Throttling property
+			// await client.send('Network.emulateNetworkConditions', {
+			// 	offline: false,
+			// 	downloadThroughput: (200 * 1024) / 8,
+			// 	uploadThroughput: (200 * 1024) / 8,
+			// 	latency: 20,
+			// });
+
+			// Set Network CPU Throttling property
+			await client.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+		}
+
 		return { browser, page };
 	}
 
 	async getInteractiveElements(): Promise<string[]> {
-		const { page, browser } = await this.launchBrowser();
+		const { page, browser } = await this.launchBrowser(false);
 
 		const data_click_vals = await page.evaluate(() => {
 			let elements = [...document.querySelectorAll('[data-click]')];
