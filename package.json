@@ -1,5 +1,5 @@
 {
-	"name": "chrome-perf-automate",
+	"name": "chrome-measure-user-perf",
 	"version": "0.0.1",
 	"description": "Automate user interaction performance testing.",
 	"main": "src/index.js",

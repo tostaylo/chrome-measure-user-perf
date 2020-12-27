@@ -33,10 +33,14 @@ class Run {
 
 	async run() {
 		try {
+			fs.mkdirSync(TRACE_DIR);
+
 			const data_click_vals = await this.getInteractiveElements();
 			await this.generateTraces(data_click_vals);
 			this.processFiles();
 			this.printResults();
+
+			fs.rmdirSync(TRACE_DIR);
 
 			process.exit(0);
 		} catch (err) {
