@@ -1,8 +1,8 @@
 import assert from 'assert';
 import Run, { Config, RenderEvent } from '../src/index.js';
 import { TraceEntry } from '../src/types/index';
-
 import { spawn } from 'child_process';
+import * as fs from 'fs';
 
 const config: Config = {
 	host: 'http://localhost:8000',
@@ -10,14 +10,6 @@ const config: Config = {
 	traceDir: './traceDir/',
 	throttleSetting: 0,
 };
-
-function delay(t: number, val: any) {
-	return new Promise(function (resolve) {
-		setTimeout(function () {
-			resolve(val);
-		}, t);
-	});
-}
 
 const TraceRunner = new Run(config);
 
@@ -46,7 +38,9 @@ describe('It has individual methods that work', async function () {
 		assert.strictEqual(finalCompositeStartTime, 5002);
 		assert.strictEqual(clickDur, 5000);
 	});
+});
 
+describe('The whole thing should work', async function () {
 	it('should work when called from Node', async function () {
 		let hasExited = false;
 		let exitCode = null;
@@ -74,7 +68,7 @@ describe('It has individual methods that work', async function () {
 		// });
 
 		nodeTest.on('close', (code: number) => {
-			exitCode = 0;
+			exitCode = code;
 			hasExited = true;
 		});
 
@@ -83,5 +77,14 @@ describe('It has individual methods that work', async function () {
 		}
 
 		assert.strictEqual(exitCode, 0);
+		assert.strictEqual(fs.existsSync(config.traceDir), false);
 	});
 });
+
+function delay(t: number, val: any) {
+	return new Promise(function (resolve) {
+		setTimeout(function () {
+			resolve(val);
+		}, t);
+	});
+}
