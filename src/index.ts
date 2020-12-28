@@ -8,7 +8,7 @@ enum ThrottleSetting {
 	THROTTLE_4X,
 }
 
-enum RenderEvent {
+export enum RenderEvent {
 	Click = 'click',
 	Layout = 'Layout',
 	UpdateLayoutTree = 'UpdateLayoutTree',
@@ -68,6 +68,8 @@ class Run {
 		console.log('**********************************');
 		console.log('**********************************');
 		console.log('**********************************');
+		console.log('**********************************');
+
 		this.results.map((result) => {
 			console.dir({
 				TestName: result.name,
@@ -76,6 +78,7 @@ class Run {
 				Actual: result.actual,
 			});
 		});
+
 		console.log('**********************************');
 		console.log('**********************************');
 		console.log('**********************************');
@@ -133,6 +136,7 @@ class Run {
 	async getInteractiveElements(): Promise<string[]> {
 		const { page, browser } = await this.launchBrowser(false);
 
+		// What happens if I put a time out to not render the data-clicks for 5 seconds?
 		const data_click_vals = await page.evaluate(() => {
 			let elements = [...document.querySelectorAll('[data-click]')];
 

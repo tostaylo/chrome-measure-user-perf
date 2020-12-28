@@ -5,7 +5,7 @@
 	"main": "src/index.js",
 	"type": "module",
 	"scripts": {
-		"test": "npm run tsc && mocha",
+		"test": "npm run tsc && mocha --timeout 30000",
 		"process": "npm run tsc && cd src && node test.js",
 		"tsc": "tsc",
 		"prepublishOnly": "npm run tsc"
