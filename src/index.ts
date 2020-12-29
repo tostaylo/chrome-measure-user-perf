@@ -2,6 +2,12 @@
 import puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import { TraceEntry, CoreTimings } from './types/index';
+import chalk from 'chalk';
+
+export enum Status {
+	Passed,
+	Failed,
+}
 
 export enum ThrottleSetting {
 	NO_THROTTLE,
@@ -17,7 +23,7 @@ export enum RenderEvent {
 }
 interface Result {
 	name: string;
-	status: string;
+	status: Status;
 	threshold: number;
 	actual: number;
 }
@@ -39,7 +45,7 @@ class Run {
 	constructor(config: Config) {
 		this.config = { ...DEFAULT_CONFIG, ...config };
 		this.results = [];
-		this.exitCode = 0;
+		this.exitCode = Status.Passed;
 	}
 
 	async run() {
@@ -70,26 +76,17 @@ class Run {
 	}
 
 	printResults() {
-		console.log('TEST RESULTS');
-		console.log('**********************************');
-		console.log('**********************************');
-		console.log('**********************************');
-		console.log('**********************************');
-		console.log('**********************************');
-
 		this.results.map((result) => {
-			console.dir({
-				TestName: result.name,
-				Status: result.status,
-				Expected: `< ${result.threshold}`,
-				Actual: result.actual,
-			});
+			const colorFn = result.status === Status.Passed ? chalk.green : chalk.red;
+			console.log(
+				colorFn(`
+				TestName: ${result.name},
+				Status: ${result.status},
+				Expected: < ${result.threshold},
+				Actual: ${result.actual},
+			`)
+			);
 		});
-
-		console.log('**********************************');
-		console.log('**********************************');
-		console.log('**********************************');
-		console.log('**********************************');
 	}
 
 	async generateTraces(data_click_vals: string[]) {
@@ -187,11 +184,11 @@ class Run {
 	evaluateThresholds(totalDur: number, fileName: string): Result | undefined {
 		const threshold = this.config.thresholds && this.config.thresholds[fileName];
 		if (threshold) {
-			let status = 'Passed';
+			let status = Status.Passed;
 
 			if (totalDur >= threshold) {
-				status = 'Failed';
-				this.exitCode = 1;
+				status = Status.Failed;
+				this.exitCode = Status.Failed;
 			}
 
 			return {

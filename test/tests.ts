@@ -1,5 +1,5 @@
 import assert from 'assert';
-import Run, { Config, RenderEvent } from '../src/index.js';
+import Run, { Config, RenderEvent, Status } from '../src/index.js';
 import { TraceEntry } from '../src/types/index';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
@@ -22,9 +22,9 @@ describe('It has individual methods that work', async function () {
 
 	it('should evaluate thresholds accurately', function () {
 		const result1 = TraceRunner.evaluateThresholds(401, '2nd');
-		assert.strictEqual(result1?.status, 'Failed');
+		assert.strictEqual(result1?.status, Status.Failed);
 		const result2 = TraceRunner.evaluateThresholds(499, '3rd');
-		assert.strictEqual(result2?.status, 'Passed');
+		assert.strictEqual(result2?.status, Status.Passed);
 	});
 
 	it('should process the json data', function () {

@@ -1,7 +1,7 @@
 import Run, { Config, ThrottleSetting } from './index.js';
 
 const passing = { '2nd': 1500, '3rd': 1500 };
-const failed = { '2nd': 400, '3rd': 500 };
+const failed = { '2nd': 1000, '3rd': 50 };
 
 let config: Config = {
 	host: 'http://localhost:8000',
