@@ -35,7 +35,7 @@ export interface Config {
 
 	// Record of all the elements on the page with the "data-click" attribute
 	// Key = Name of unique identifer given to the value of "data-click" for each element
-	// Value = Test baseline which determines if that user interaction passes or fails
+	// Value = Test baseline (in milliseconds)  which determines if that user interaction passes or fails
 	thresholds: Record<string, number>;
 
 	// Directory which will be temporarily created for every invocation of TraceRunner.run
@@ -94,13 +94,13 @@ class Run {
 
 	printResults() {
 		this.results.map((result) => {
-			const colorFn = result.status === Status.Passed ? chalk.green : chalk.red;
+			const [colorFn, statusStr] = result.status === Status.Passed ? [chalk.green, 'Passed'] : [chalk.red, 'Failed'];
 			console.log(
 				colorFn(`
 				TestName: ${result.name},
-				Status: ${result.status},
-				Expected: < ${result.threshold},
-				Actual: ${result.actual},
+				Status: ${statusStr},
+				Expected: < ${result.threshold} ms,
+				Actual: ${result.actual} ms,
 			`)
 			);
 		});

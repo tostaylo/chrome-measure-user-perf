@@ -32,6 +32,7 @@ let config: Config = {
 	thresholds: { '1st': 400, '2nd': 1500, '3rd': 1500 },
 	traceDir: './traceDir/',
 	throttleSetting: ThrottleSetting.NO_THROTTLE,
+	keepDir: false,
 };
 
 (async () => {
@@ -44,7 +45,7 @@ Start up your application. Make sure the `config.host` matches the url your appl
 
 Execute your Node script invoking `TracerRunner.run`
 
-## Defaults
+## Configuration
 
 ```typescript
 export interface Config {
@@ -53,7 +54,7 @@ export interface Config {
 
 	// Record of all the elements on the page with the "data-click" attribute
 	// Key = Name of unique identifer given to the value of "data-click" for each element
-	// Value = Test baseline which determines if that user interaction passes or fails
+	// Value = Test baseline (in milliseconds) which determines if that user interaction passes or fails
 	thresholds: Record<string, number>;
 
 	// Directory which will be temporarily created for every invocation of TraceRunner.run

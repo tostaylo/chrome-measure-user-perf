@@ -8,6 +8,7 @@ let config: Config = {
 	thresholds: passing,
 	traceDir: './traceDir/',
 	throttleSetting: ThrottleSetting.NO_THROTTLE,
+	keepDir: false,
 };
 
 (async () => {
