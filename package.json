@@ -1,17 +1,26 @@
 {
 	"name": "chrome-measure-user-perf",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"description": "Automate user interaction performance testing.",
 	"main": "src/index.js",
 	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tostaylo/chrome-measure-user-perf"
+	},
+	"homepage": "https://github.com/tostaylo/chrome-measure-user-perf",
+	"keywords": [
+		"performance",
+		"chrome"
+	],
 	"scripts": {
 		"test": "npm run tsc && mocha --timeout 30000",
 		"process": "npm run tsc && cd src && node test.js $1",
 		"tsc": "tsc",
 		"prepublishOnly": "npm run tsc"
 	},
-	"author": "",
-	"license": "ISC",
+	"author": "Torre Taylor",
+	"license": "MIT",
 	"dependencies": {
 		"@types/puppeteer": "^3.0.1",
 		"chalk": "^4.1.0",

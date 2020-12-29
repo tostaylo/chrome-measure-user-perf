@@ -5,6 +5,12 @@ Experimental status
 
 ## Use
 
+```shell
+
+npm install chrome-measure-user-perf
+
+```
+
 First add the `data-click=[aUniqueIdentifier]` to the HTML elements which initiate the user interactions you would like to measure.
 
 ```html
