@@ -1,5 +1,5 @@
 import assert from 'assert';
-import Run, { Config, RenderEvent, Status } from '../src/index.js';
+import TraceRunner, { Config, RenderEvent, Status } from '../src/index.js';
 import { TraceEntry } from '../src/types/index';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
@@ -12,7 +12,7 @@ describe('It has individual methods that work', async function () {
 		throttleSetting: 0,
 	};
 
-	const TraceRunner = new Run(config);
+	const TR = new TraceRunner(config);
 	const traceEvents: TraceEntry[] = [
 		{ args: { data: { type: 'click' } }, dur: 5000, name: 'click', ts: 0 },
 		{ args: { data: { type: '' } }, dur: 5000, name: 'Paint', ts: 5001 },
@@ -21,16 +21,14 @@ describe('It has individual methods that work', async function () {
 	];
 
 	it('should evaluate thresholds accurately', function () {
-		const result1 = TraceRunner.evaluateThresholds(401, '2nd');
+		const result1 = TR.evaluateThresholds(401, '2nd');
 		assert.strictEqual(result1?.status, Status.Failed);
-		const result2 = TraceRunner.evaluateThresholds(499, '3rd');
+		const result2 = TR.evaluateThresholds(499, '3rd');
 		assert.strictEqual(result2?.status, Status.Passed);
 	});
 
 	it('should process the json data', function () {
-		const { finalCompositeDur, finalCompositeStartTime, clickStartTime, clickDur } = TraceRunner.processJSON(
-			traceEvents
-		);
+		const { finalCompositeDur, finalCompositeStartTime, clickStartTime, clickDur } = TR.processJSON(traceEvents);
 
 		assert.strictEqual(finalCompositeDur, 7000);
 		assert.strictEqual(clickStartTime, 0);

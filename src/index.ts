@@ -51,7 +51,7 @@ export interface Config {
 	keepDir?: boolean;
 }
 
-class Run {
+class TraceRunner {
 	private config: Config;
 	private results: Result[];
 	private exitCode: number;
@@ -268,6 +268,6 @@ class Run {
 	}
 }
 
-export default Run;
+export default TraceRunner;
 
 // Will need to write tests

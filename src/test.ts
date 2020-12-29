@@ -1,4 +1,4 @@
-import Run, { Config, ThrottleSetting } from './index.js';
+import TraceRunner, { Config, ThrottleSetting } from './index.js';
 
 const passing = { '2nd': 1500, '3rd': 1500 };
 const failed = { '2nd': 1000, '3rd': 50 };
@@ -16,6 +16,6 @@ let config: Config = {
 		config.thresholds = failed;
 	}
 
-	const TraceRunner = new Run(config);
-	await TraceRunner.run();
+	const TR = new TraceRunner(config);
+	await TR.run();
 })();

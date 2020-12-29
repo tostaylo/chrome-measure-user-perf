@@ -25,7 +25,7 @@ First add the `data-click=[aUniqueIdentifier]` to the HTML elements which initia
 Then create your Node script.
 
 ```typescript
-import Run, { Config, ThrottleSetting } from './index.js';
+import TraceRunner, { Config, ThrottleSetting } from './index.js';
 
 let config: Config = {
 	host: 'http://localhost:8000',
@@ -36,14 +36,14 @@ let config: Config = {
 };
 
 (async () => {
-	const TraceRunner = new Run(config);
-	await TraceRunner.run();
+	const TR = new TraceRunner(config);
+	await TR.run();
 })();
 ```
 
 Start up your application. Make sure the `config.host` matches the url your application is running on.
 
-Execute your Node script invoking `TracerRunner.run`
+Execute your Node script invoking `TraceRunner.run`
 
 ## Configuration
 
