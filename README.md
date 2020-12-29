@@ -6,6 +6,10 @@ Experimental status
 
 This package utilizes [Puppeteer](https://developers.google.com/web/tools/puppeteer) and the [Google Chrome Developer Tools Performance Timeline](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/reference) to record the duration of click events and the resulting browser render process on your webpage. You can set timing thresholds for each click event and this package will evaluate the success or failure of each threshold.
 
+## [Motivation](https://docs.google.com/presentation/d/1fmtKu9JcdGmVvJsUlWtRxmyqH0_fpIX6bX-QYlGw2vk/edit?usp=sharing)
+
+A short [presentation](https://docs.google.com/presentation/d/1fmtKu9JcdGmVvJsUlWtRxmyqH0_fpIX6bX-QYlGw2vk/edit#slide=id.gaf58bd1369_1_0) describing the motivation and process behind this package.
+
 ## Use
 
 ```shell
@@ -41,7 +45,7 @@ let config: Config = {
 })();
 ```
 
-Start up your application. Make sure the `config.host` matches the url your application is running on.
+Start up your website. Make sure the `config.host` matches the url your application is running on.
 
 Execute your Node script invoking `TraceRunner.run`
 
