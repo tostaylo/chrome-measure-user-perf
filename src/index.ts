@@ -80,12 +80,12 @@ class TraceRunner {
 				process.exit(1);
 			}
 
-			if (!fs.existsSync(this.config.traceDirName)) {
-				fs.mkdirSync(this.config.traceDirName);
-			} else {
-				console.log(chalk.red('Trace Directory must not exist already!'));
+			if (fs.existsSync(this.config.traceDirName)) {
+				console.log(chalk.red(`Trace Directory ${this.config.traceDirName} must not exist already!`));
 				process.exit(1);
 			}
+
+			fs.mkdirSync(this.config.traceDirName);
 
 			const data_click_vals = await this.getInteractiveElements();
 			await this.generateTraces(data_click_vals);
