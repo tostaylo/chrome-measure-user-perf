@@ -3,6 +3,7 @@ import puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import { TraceEntry, CoreTimings } from './types/index';
 import chalk from 'chalk';
+import trash from 'trash';
 
 export enum Status {
 	Passed,
@@ -10,8 +11,8 @@ export enum Status {
 }
 
 export enum ThrottleSetting {
-	NO_THROTTLE,
-	THROTTLE_4X,
+	NO_THROTTLE = 0,
+	THROTTLE_4X = 4,
 }
 
 export enum RenderEvent {
@@ -28,7 +29,7 @@ interface Result {
 	actual: number;
 }
 
-const DEFAULT_CONFIG: Partial<Config> = { throttleSetting: ThrottleSetting.NO_THROTTLE };
+const DEFAULT_CONFIG: Partial<Config> = { pageLoadAwait: 1000, throttleSetting: ThrottleSetting.NO_THROTTLE };
 export interface Config {
 	// Where your application is running.
 	host: string;
@@ -41,7 +42,7 @@ export interface Config {
 	// Directory which will be temporarily created for every invocation of TraceRunner.run
 	// MUST BE UNIQUE NAME FROM ANY OTHER DIRECTORY IN THE LOCATION SPECIFIED!
 	// IT WILL BE DELETED AFTER EVERY RUN.
-	traceDir: string;
+	traceDirName: string;
 
 	// Enum for throttling the CPU of Chrome Dev Tools Performance Timeline
 	// 0 = No Throttle, 1 = 4x Throttle
@@ -49,6 +50,11 @@ export interface Config {
 
 	// Keep trace file directory between executions of TraceRunner.run. Helpful for debugging.
 	keepDir?: boolean;
+
+	// Time to wait for page load.
+	// Can be increased if interactions are being executed by Puppeteer too soon before event listeners have been attached.
+	// Or if the elements containing data-click attributes on the page have not rendered yet.
+	pageLoadAwait?: number;
 }
 
 class TraceRunner {
@@ -57,14 +63,14 @@ class TraceRunner {
 	private exitCode: number;
 
 	constructor(config: Config) {
-		this.config = { ...DEFAULT_CONFIG, ...config };
+		this.config = { ...DEFAULT_CONFIG, ...config, traceDirName: `./${config.traceDirName}/` };
 		this.results = [];
 		this.exitCode = Status.Passed;
 	}
 
 	async run() {
 		try {
-			if (!this.config.traceDir) {
+			if (!this.config.traceDirName) {
 				console.log(chalk.red('Must specify a unique temporary directory for trace files!'));
 				process.exit(1);
 			}
@@ -74,8 +80,8 @@ class TraceRunner {
 				process.exit(1);
 			}
 
-			if (!fs.existsSync(this.config.traceDir)) {
-				fs.mkdirSync(this.config.traceDir);
+			if (!fs.existsSync(this.config.traceDirName)) {
+				fs.mkdirSync(this.config.traceDirName);
 			} else {
 				console.log(chalk.red('Trace Directory must not exist already!'));
 				process.exit(1);
@@ -87,13 +93,13 @@ class TraceRunner {
 			this.printResults();
 
 			if (!this.config.keepDir) {
-				fs.rmdirSync(this.config.traceDir, { recursive: true });
+				await trash([this.config.traceDirName]);
 			}
 
 			process.exit(this.exitCode);
 		} catch (err) {
 			if (!this.config.keepDir) {
-				fs.rmdirSync(this.config.traceDir, { recursive: true });
+				await trash([this.config.traceDirName]);
 			}
 
 			console.error(chalk.red(err));
@@ -123,7 +129,7 @@ class TraceRunner {
 			const selector = await page.waitForSelector(dataAttr);
 
 			if (selector) {
-				await page.tracing.start({ path: `${this.config.traceDir}trace.${valStr}.json`, screenshots: false });
+				await page.tracing.start({ path: `${this.config.traceDirName}trace.${valStr}.json`, screenshots: false });
 				await page.click(dataAttr);
 				await page.tracing.stop();
 			}
@@ -142,10 +148,10 @@ class TraceRunner {
 		const navigationPromise = page.waitForNavigation();
 		await page.goto(this.config.host);
 		await page.setViewport({ width: 1440, height: 714 });
-		await (page as any).waitForTimeout(1000);
+		await (page as any).waitForTimeout(this.config.pageLoadAwait);
 		await navigationPromise;
 
-		if (throttled && this.config.throttleSetting === ThrottleSetting.THROTTLE_4X) {
+		if (throttled && this.config.throttleSetting !== ThrottleSetting.NO_THROTTLE) {
 			// Connect to Chrome DevTools
 			const client = await page.target().createCDPSession();
 
@@ -158,7 +164,7 @@ class TraceRunner {
 			// });
 
 			// Set Network CPU Throttling property
-			await client.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+			await client.send('Emulation.setCPUThrottlingRate', { rate: this.config.throttleSetting });
 		}
 
 		return { browser, page };
@@ -180,8 +186,8 @@ class TraceRunner {
 	}
 
 	processFiles() {
-		fs.readdirSync(this.config.traceDir).forEach((file: string) => {
-			const path = `${this.config.traceDir}${file}`;
+		fs.readdirSync(this.config.traceDirName).forEach((file: string) => {
+			const path = `${this.config.traceDirName}${file}`;
 			const fileName = file.split('.')[1];
 
 			try {

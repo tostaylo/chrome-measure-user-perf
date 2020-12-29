@@ -8,7 +8,7 @@ describe('It has individual methods that work', async function () {
 	const config: Config = {
 		host: 'http://localhost:8000',
 		thresholds: { '2nd': 400, '3rd': 500 },
-		traceDir: './traceDir/',
+		traceDirName: 'traceDirName',
 		throttleSetting: 0,
 	};
 
@@ -76,7 +76,7 @@ describe('The whole thing should work', async function () {
 			}
 
 			assert.strictEqual(exitCode, i);
-			assert.strictEqual(fs.existsSync('./traceDir/'), false);
+			assert.strictEqual(fs.existsSync('traceDirName'), false);
 		});
 	}
 });

@@ -1,13 +1,13 @@
 import TraceRunner, { Config, ThrottleSetting } from './index.js';
 
-const passing = { '2nd': 1500, '3rd': 1500 };
+const passing = { '2nd': 5000, '3rd': 5000 };
 const failed = { '2nd': 1000, '3rd': 50 };
 
 let config: Config = {
 	host: 'http://localhost:8000',
 	thresholds: passing,
-	traceDir: './traceDir/',
-	throttleSetting: ThrottleSetting.NO_THROTTLE,
+	traceDirName: 'LocalTraceDirectoryNameWhichWillBeDeletedOnEveryRun',
+	throttleSetting: ThrottleSetting.THROTTLE_4X,
 	keepDir: false,
 };
 
