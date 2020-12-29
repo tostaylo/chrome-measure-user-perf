@@ -39,6 +39,8 @@ export interface Config {
 	thresholds: Record<string, number>;
 
 	// Directory which will be temporarily created for every invocation of TraceRunner.run
+	// MUST BE UNIQUE NAME FROM ANY OTHER DIRECTORY IN THE LOCATION SPECIFIED!
+	// IT WILL BE DELETED AFTER EVERY RUN.
 	traceDir: string;
 
 	// Enum for throttling the CPU of Chrome Dev Tools Performance Timeline
@@ -62,9 +64,12 @@ class Run {
 
 	async run() {
 		try {
-			// remove directory if it exists already.
-			fs.rmdirSync(this.config.traceDir, { recursive: true });
-			fs.mkdirSync(this.config.traceDir);
+			if (!fs.existsSync(this.config.traceDir)) {
+				fs.mkdirSync(this.config.traceDir);
+			} else {
+				console.log('Trace Directory must not exist already!');
+				process.exit(1);
+			}
 
 			const data_click_vals = await this.getInteractiveElements();
 			await this.generateTraces(data_click_vals);

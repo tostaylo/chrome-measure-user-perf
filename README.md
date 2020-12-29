@@ -1,7 +1,10 @@
 # chrome-measure-user-perf
 
 Automate user interaction performance testing.
+
 Experimental status
+
+This package utilizes [Puppeteer](https://developers.google.com/web/tools/puppeteer) and the [Google Chrome Developer Tools Performance Timeline](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/reference) to record the duration of click events and the resulting browser render process on your webpage. You can set timing thresholds for each click event and this package will evaluate the success or failure of each threshold.
 
 ## Use
 
@@ -54,6 +57,8 @@ export interface Config {
 	thresholds: Record<string, number>;
 
 	// Directory which will be temporarily created for every invocation of TraceRunner.run
+	// MUST BE UNIQUE NAME FROM ANY OTHER DIRECTORY IN THE LOCATION SPECIFIED!
+	// IT WILL BE DELETED AFTER EVERY RUN.
 	traceDir: string;
 
 	// Enum for throttling the CPU of Chrome Dev Tools Performance Timeline
