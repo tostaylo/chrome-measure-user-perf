@@ -25,7 +25,7 @@ First add the `data-click=[aUniqueIdentifier]` to the HTML elements which initia
 Then create your Node script.
 
 ```typescript
-import TraceRunner, { Config, ThrottleSetting } from './index.js';
+import TraceRunner, { Config, ThrottleSetting } from 'chrome-measure-user-perf';
 
 let config: Config = {
 	host: 'http://localhost:8000',
