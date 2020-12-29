@@ -1,13 +1,20 @@
-import Run, { Config } from './index.js';
+import Run, { Config, ThrottleSetting } from './index.js';
 
-const config: Config = {
+const passing = { '2nd': 1500, '3rd': 1500 };
+const failed = { '2nd': 400, '3rd': 500 };
+
+let config: Config = {
 	host: 'http://localhost:8000',
-	thresholds: { '2nd': 400, '3rd': 500 },
+	thresholds: passing,
 	traceDir: './traceDir/',
-	throttleSetting: 1,
+	throttleSetting: ThrottleSetting.NO_THROTTLE,
 };
 
 (async () => {
+	if (process.argv.includes('failing')) {
+		config.thresholds = failed;
+	}
+
 	const TraceRunner = new Run(config);
 	await TraceRunner.run();
 })();

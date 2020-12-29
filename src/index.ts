@@ -3,7 +3,7 @@ import puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import { TraceEntry, CoreTimings } from './types/index';
 
-enum ThrottleSetting {
+export enum ThrottleSetting {
 	NO_THROTTLE,
 	THROTTLE_4X,
 }
@@ -33,10 +33,12 @@ export interface Config {
 class Run {
 	private config: Config;
 	private results: Result[];
+	private exitCode: number;
 
 	constructor(config: Config) {
 		this.config = { ...DEFAULT_CONFIG, ...config };
 		this.results = [];
+		this.exitCode = 0;
 	}
 
 	async run() {
@@ -52,7 +54,7 @@ class Run {
 
 			fs.rmdirSync(this.config.traceDir, { recursive: true });
 
-			process.exit(0);
+			process.exit(this.exitCode);
 		} catch (err) {
 			fs.rmdirSync(this.config.traceDir, { recursive: true });
 
@@ -180,14 +182,19 @@ class Run {
 	evaluateThresholds(totalDur: number, fileName: string): Result | undefined {
 		const threshold = this.config.thresholds && this.config.thresholds[fileName];
 		if (threshold) {
-			let result: Result = {
+			let status = 'Passed';
+
+			if (totalDur >= threshold) {
+				status = 'Failed';
+				this.exitCode = 1;
+			}
+
+			return {
 				threshold,
 				actual: totalDur,
 				name: fileName,
-				status: totalDur < threshold ? 'Passed' : 'Failed',
+				status,
 			};
-
-			return result;
 		} else {
 			throw new Error(
 				`All elements with the [data-click] attribute must have a threshold set. No threshold was set for the element ${fileName}`

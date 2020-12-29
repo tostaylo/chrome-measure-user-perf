@@ -6,7 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"test": "npm run tsc && mocha --timeout 30000",
-		"process": "npm run tsc && cd src && node test.js",
+		"process": "npm run tsc && cd src && node test.js $1",
 		"tsc": "tsc",
 		"prepublishOnly": "npm run tsc"
 	},
