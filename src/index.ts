@@ -28,6 +28,7 @@ export interface Config {
 	thresholds: Record<string, number>;
 	traceDir: string;
 	throttleSetting?: ThrottleSetting;
+	keepDir?: boolean;
 }
 
 class Run {
@@ -52,11 +53,15 @@ class Run {
 			this.processFiles();
 			this.printResults();
 
-			fs.rmdirSync(this.config.traceDir, { recursive: true });
+			if (!this.config.keepDir) {
+				fs.rmdirSync(this.config.traceDir, { recursive: true });
+			}
 
 			process.exit(this.exitCode);
 		} catch (err) {
-			fs.rmdirSync(this.config.traceDir, { recursive: true });
+			if (!this.config.keepDir) {
+				fs.rmdirSync(this.config.traceDir, { recursive: true });
+			}
 
 			console.error(err);
 
