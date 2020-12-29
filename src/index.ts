@@ -30,10 +30,22 @@ interface Result {
 
 const DEFAULT_CONFIG: Partial<Config> = { throttleSetting: ThrottleSetting.NO_THROTTLE };
 export interface Config {
+	// Where your application is running.
 	host: string;
+
+	// Record of all the elements on the page with the "data-click" attribute
+	// Key = Name of unique identifer given to the value of "data-click" for each element
+	// Value = Test baseline which determines if that user interaction passes or fails
 	thresholds: Record<string, number>;
+
+	// Directory which will be temporarily created for every invocation of TraceRunner.run
 	traceDir: string;
+
+	// Enum for throttling the CPU of Chrome Dev Tools Performance Timeline
+	// 0 = No Throttle, 1 = 4x Throttle
 	throttleSetting?: ThrottleSetting;
+
+	// Keep trace file directory between executions of TraceRunner.run. Helpful for debugging.
 	keepDir?: boolean;
 }
 
