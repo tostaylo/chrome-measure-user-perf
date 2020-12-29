@@ -64,10 +64,20 @@ class TraceRunner {
 
 	async run() {
 		try {
+			if (!this.config.traceDir) {
+				console.log(chalk.red('Must specify a unique temporary directory for trace files!'));
+				process.exit(1);
+			}
+
+			if (!this.config.host) {
+				console.log(chalk.red('Must specify a host!'));
+				process.exit(1);
+			}
+
 			if (!fs.existsSync(this.config.traceDir)) {
 				fs.mkdirSync(this.config.traceDir);
 			} else {
-				console.log('Trace Directory must not exist already!');
+				console.log(chalk.red('Trace Directory must not exist already!'));
 				process.exit(1);
 			}
 
@@ -86,7 +96,7 @@ class TraceRunner {
 				fs.rmdirSync(this.config.traceDir, { recursive: true });
 			}
 
-			console.error(err);
+			console.error(chalk.red(err));
 
 			process.exit(1);
 		}
@@ -193,7 +203,7 @@ class TraceRunner {
 					this.results.push(result);
 				}
 			} catch (err) {
-				console.error(err);
+				console.error(chalk.red(err));
 			}
 		});
 	}
@@ -269,5 +279,3 @@ class TraceRunner {
 }
 
 export default TraceRunner;
-
-// Will need to write tests
