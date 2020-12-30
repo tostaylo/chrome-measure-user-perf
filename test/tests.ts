@@ -1,6 +1,7 @@
 import assert from 'assert';
-import TraceRunner, { Config, RenderEvent, Status } from '../src/index.js';
-import { TraceEntry } from '../src/types/index';
+import TraceRunner from '../src/index.js';
+import { TraceEntry, Config } from '../src/types/interfaces.js';
+import { RenderEvent, Status } from '../src/types/enums.js';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 

@@ -78,7 +78,7 @@ export interface Config {
 	keepDir?: boolean;
 
 	// Time to wait for page load.
-	// Can be increased if interactions are being executed by Puppeteer too soon before event listeners have been      attached.
+	// Can be increased if interactions are being executed by Puppeteer too soon before event listeners have been attached.
 	// Or if the elements containing data-click attributes on the page have not rendered yet.
 	pageLoadAwait?: number;
 }

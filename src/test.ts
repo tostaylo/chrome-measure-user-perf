@@ -1,4 +1,6 @@
-import TraceRunner, { Config, ThrottleSetting } from './index.js';
+import TraceRunner from './index.js';
+import { Config } from './types/interfaces.js';
+import { ThrottleSetting } from './types/enums.js';
 
 const passing = { '2nd': 5000, '3rd': 5000 };
 const failed = { '2nd': 1000, '3rd': 50 };

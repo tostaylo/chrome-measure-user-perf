@@ -11,7 +11,8 @@
 	"homepage": "https://github.com/tostaylo/chrome-measure-user-perf",
 	"keywords": [
 		"performance",
-		"chrome"
+		"chrome",
+		"devtools"
 	],
 	"scripts": {
 		"test": "npm run tsc && mocha --timeout 30000",

@@ -1,61 +1,12 @@
 'use strict';
 import puppeteer from 'puppeteer';
 import * as fs from 'fs';
-import { TraceEntry, CoreTimings } from './types/index';
+import { TraceEntry, CoreTimings, Result, Config } from './types/interfaces';
+import { ThrottleSetting, Status, RenderEvent } from './types/enums.js';
 import chalk from 'chalk';
 import trash from 'trash';
 
-export enum Status {
-	Passed,
-	Failed,
-}
-
-export enum ThrottleSetting {
-	NO_THROTTLE = 0,
-	THROTTLE_4X = 4,
-}
-
-export enum RenderEvent {
-	Click = 'click',
-	Layout = 'Layout',
-	UpdateLayoutTree = 'UpdateLayoutTree',
-	Paint = 'Paint',
-	CompositeLayers = 'CompositeLayers',
-}
-interface Result {
-	name: string;
-	status: Status;
-	threshold: number;
-	actual: number;
-}
-
 const DEFAULT_CONFIG: Partial<Config> = { pageLoadAwait: 1000, throttleSetting: ThrottleSetting.NO_THROTTLE };
-export interface Config {
-	// Where your application is running.
-	host: string;
-
-	// Record of all the elements on the page with the "data-click" attribute
-	// Key = Name of unique identifer given to the value of "data-click" for each element
-	// Value = Test baseline (in milliseconds)  which determines if that user interaction passes or fails
-	thresholds: Record<string, number>;
-
-	// Directory which will be temporarily created for every invocation of TraceRunner.run
-	// MUST BE UNIQUE NAME FROM ANY OTHER DIRECTORY IN THE LOCATION SPECIFIED!
-	// IT WILL BE DELETED AFTER EVERY RUN.
-	traceDirName: string;
-
-	// Enum for throttling the CPU of Chrome Dev Tools Performance Timeline
-	// 0 = No Throttle, 1 = 4x Throttle
-	throttleSetting?: ThrottleSetting;
-
-	// Keep trace file directory between executions of TraceRunner.run. Helpful for debugging.
-	keepDir?: boolean;
-
-	// Time to wait for page load.
-	// Can be increased if interactions are being executed by Puppeteer too soon before event listeners have been attached.
-	// Or if the elements containing data-click attributes on the page have not rendered yet.
-	pageLoadAwait?: number;
-}
 
 class TraceRunner {
 	private config: Config;
