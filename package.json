@@ -1,6 +1,6 @@
 {
 	"name": "chrome-measure-user-perf",
-	"version": "0.0.15",
+	"version": "0.0.16",
 	"description": "Automate user interaction performance testing.",
 	"main": "src/index.js",
 	"type": "module",
